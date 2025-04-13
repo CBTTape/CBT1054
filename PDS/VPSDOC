@@ -1,0 +1,4 @@
+LRS (at this time) does not have support for logging on to the VMCF/VPS
+application when some users are still using a password and some are using a
+phrase.  The code in VPSEXIT is what we wrote to overcome this.  If you are
+accessing the VPS menu via TSO only then this exit is not needed,

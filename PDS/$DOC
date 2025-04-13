@@ -1,0 +1,26 @@
+This PDS may assist with the conversion of users from a RACF password to
+a passphrase environment.
+I thought I'd put some of the tools we used to accomplish converting users from
+passwords to passphrases.
+****************************************************************************
+Index of members:
+****************************************************************************
+SECURITY - the RACF commands I used to enable smf to capture the records needed
+  to generate usage reports.
+****************************************************************************
+IKJTSOXX - Statements needed in parmlib for passphrase
+****************************************************************************
+REPORT - A sample JCL to generate usage reports.
+  IBM did not provide the sort statements to do this (at this time).  I did
+  provide them with this code.  So maybe they have it in their sample file now.
+  this reads SMF record type 80
+****************************************************************************
+VPSDOC - If you have LRS VPS and access the VPS menu via the application
+  interface instead of TSO you may want to install this exit.  Use at your own
+  risk.  It works for us.  At the time we were converting LRS only provided
+  a logon interface that supported a password entry or passphrase entry.
+****************************************************************************
+VPSEXIT - Code for the VPS exit
+****************************************************************************
+Contributed by Paul Lemons
+  paul.lemons@vericast.com

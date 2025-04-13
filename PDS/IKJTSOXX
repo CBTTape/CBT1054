@@ -1,0 +1,2 @@
+LOGON   PASSPHRASE(ON)            /* Allow a phrase to be entered  */
+        VERIFYAPPL(ON)            /* pass appl name to racf        */

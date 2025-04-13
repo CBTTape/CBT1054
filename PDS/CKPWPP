@@ -1,0 +1,26 @@
+/* rexx */
+x = outtrap("search.")
+Address TSO
+"search filter(**) class(user)"
+x = outtrap("off")
+do n = 4 to search.0
+  userid = strip(left(search.n,8))
+  call xutil
+  end
+exit
+xutil:
+rxrc=IRRXUTIL("EXTRACT","USER",userid,"RACF")
+if (word(rxrc,1) <> 0) then do
+   say 'IRRXUTIL return code:'rxrc
+   exit
+  end
+if word(userid racf.base.haspwd.1,2) = 'TRUE' then
+  pswd = 'PASSWORD'
+  else
+  pswd = 'NOPASSWORD'
+if word(userid racf.base.hasphras.1,2) = 'TRUE' then
+  phrs = 'PASSPHRASE'
+  else
+  phrs = 'NOPASSPHRASE'
+say left(userid,8) left(pswd,10) left(phrs,12)
+return

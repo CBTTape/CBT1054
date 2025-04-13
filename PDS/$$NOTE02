@@ -1,0 +1,28 @@
+Subject:  Update to phrase doc
+From:     "Paul Lemons (Vericast)" <Paul.Lemons@Vericast.com>
+Date:     4/18/2024, 3:16 PM
+To:       Sam Golob <sbgolob@cbttape.org>
+
+I tried to really stress to folks in this doc that the information
+for VPS is only needed in a rare instance.  They use VPS and they
+access VPS/VMCF as a VTAM application.  Most LRS shops access
+VPS/VMCF as a TSO ISPF application.
+
+For the report member it is used to track via SMF password and or
+phrase logon usage.  It is a supplement to the normal reports
+IBM provides in their samplib.
+
+You can always determine who has the capability to use a password
+and or a passphrase.  You can have one, both or none.  None
+indicates a protect userid that cannot be used to logon.
+
+Let me know if this makes sense.
+
+Paul Lemons
+Systems Engineer IV - Mainframe Infrastucture
+Vericast
+15955 La Cantera Parkway
+San Antonio, TX 78256
+Mobile: 214 686-3749
+Paul.Lemons@Vericast.com
+

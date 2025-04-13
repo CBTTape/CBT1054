@@ -1,0 +1,323 @@
+VMVTUE00 TITLE 'VMCF/VTAM USER EXIT-00:  USER LOGON EXIT'
+*---------------------------------------------------------------------*
+*                                                                     *
+*        VPS MONITOR AND CONTROL FACILITY - VERSION 2, RELEASE 1.2    *
+*                                                                     *
+*        You need to have VPS from Levi, Ray, and Shoup               *
+*        in order to assemble this exit.                              *
+*                                                                     *
+*---------------------------------------------------------------------*
+*                                                                     *
+*                                                                     *
+*                                                                     *
+*   MODULE NAME:    VMVTUE00                                          *
+*                                                                     *
+*                                                                     *
+*   EXIT NAME:      VMCF/VTAM USER LOGON EXIT                         *
+*                                                                     *
+*                                                                     *
+*   EXIT TYPE:      USER                                              *
+*                                                                     *
+*                                                                     *
+*   EXIT TCB:       USER                                              *
+*                                                                     *
+*                                                                     *
+*   RECOVERY:       VTEXIT00= KEYWORD DETERMINES RECOVERY ON/OFF      *
+*                                                                     *
+*                   RECOVERY ON:                                      *
+*                                                                     *
+*                   RECOVERY OFF:                                     *
+*                                                                     *
+*                                                                     *
+*   ATTRIBUTES:     REENTRANT, REUSEABLE, REFRESHABLE                 *
+*                                                                     *
+*                   PROBLEM STATE, KEY 8                              *
+*                                                                     *
+*                   AUTHORIZED                                        *
+*                                                                     *
+*                                                                     *
+*   FUNCTION:       THIS EXIT IS CALLED PRIOR TO AND AFTER THE        *
+*                   SIGNON SCREEN IS PRESENTED TO THE USER.           *
+*                                                                     *
+*---------------------------------------------------------------------*
+         EJECT
+*---------------------------------------------------------------------*
+*                                                                     *
+*   FUNCTION:                                                         *
+*                                                                     *
+*   THIS EXIT, IF IMPLEMENTED AND ENABLED, ALLOWS AN INSTALLATION TO  *
+*   RECEIVE CONTROL DURING THE VMCF/VTAM USER LOGON PROCESS. THE      *
+*   EXIT WILL BE CALLED TWICE, ONCE BEFORE THE SIGNON SCREEN IS       *
+*   DISPLAYED AND AGAIN AFTER THE SIGNON SCREEN IS DISPLAYED.         *
+*                                                                     *
+*   THE PURPOSE OF THIS EXIT, AS CODED, IS TO HANDLE SITUATIONS WHERE * TX150E00
+*   A MIXED CASE PASSWORD PHRASE IS ALLOWED, BUT AN UPPERCASED        * TX150E00
+*   PASSWORD IS REQUIRED.  PASSWORDS AND PASSWORD PHRASES ARE BOTH    * TX150E00
+*   PASSED IN THE SAME 100 BYTE FIELD FOR BOTH EXISTING (VTLGPSW) AND * TX150E00
+*   NEW (VTLGNPSW) PASSWORDS AND PASSWORD PHRASES.                    * TX150E00
+*                                                                     * TX150E00
+*   NO ACTION WILL BE TAKEN WHEN THE EXIT IS INVOKED BEFORE THE       * TX150E00
+*   SCREEN IS DISPLAYED.                                              * TX150E00
+*                                                                     * TX150E00
+*   AFTER THE SIGNON SCREEN IS DISPLAYED, THE VTLGPSW AND VTLGNPSW    * TX150E00
+*   FIELDS WILL BE EVALUATED TO DETERMINE IF THEY CONTAIN DATA.  IF   * TX150E00
+*   THE LENGTH OF THE DATA ENTERED IS EIGHT CHARACTERS OR LESS,       * TX150E00
+*   INDICATING A PASSWORD, THE DATA WILL BE UPPERCASED.  OTHERWISE,   * TX150E00
+*   NO ACTION WILL BE TAKEN.                                          * TX150E00
+*                                                                     *
+*---------------------------------------------------------------------*
+         EJECT
+*---------------------------------------------------------------------*
+*                                                                     *
+*   REGISTER USAGE:                                                   *
+*                                                                     *
+*      ON ENTRY:                                                      *
+*       AR15 ==>  LR_XIB BASE REGISTER.                               * VMCF211
+*                                                                     *
+*         R0 ==>  REQUEST CODE.                                       *
+*                 00 - BEFORE SIGNON SCREEN                           *
+*                 04 - AFTER  SIGNON SCREEN                           *
+*         R1 ==>  ADDRESS OF PARAMETER LIST.                          *
+*        R13 ==>  ADDRESS OF CALLERS SAVEAREA.                        *
+*        R14 ==>  RETURN ADDRESS.                                     *
+*        R15 ==>  ENTRY  ADDRESS.                                     *
+*                                                                     *
+*      DURING EXECUTION:                                              *
+*      R0-R1 ==>  VOLATILE.                                           *
+*         R2 ==>  NOT USED.                                           *
+*         R3 ==>  ADDRESS OF USER WORDS.                              *
+*         R4 ==>  ADDRESS OF VMCFATT CONTROL BLOCK.                   *
+*         R5 ==>  VTVMLOGN BASE REQISTER.                             *
+*         R6 ==>  ADDRESS OF LOGON DATA.                              *
+*      R7-R9 ==>  VOLATILE.                                           *
+*        R10 ==>  LR_XIB BASE REGISTER.                               * VMCF211
+*        R11 ==>  VOLATILE.                                           *
+*        R12 ==>  VMVTUE00 BASE REGISTER.                             *
+*        R13 ==>  ADDRESS OF VMVTUE00 WORKAREA.                       *
+*    R14-R15 ==>  VOLATILE.                                           *
+*                                                                     *
+*      ON EXIT:                                                       *
+*         ALL REGISTERS WILL BE RESTORED TO ENTRY CONDITIONS, EXCEPT  *
+*      R15, WHICH WILL CONTAIN THE RETURN CODE.                       *
+*                                                                     *
+*---------------------------------------------------------------------*
+         EJECT
+*---------------------------------------------------------------------*
+*                                                                     *
+*   PARAMETER LIST FORMAT:                                            *
+*                                                                     *
+*      A(SYSTEM ATTRIBUTES) - MAPPING MACRO: VMCFATT                  *
+*      A(USER WORDS)        - ADDRESS OF TWO USER WORDS               *
+*      A(LOGON INFORMATION) - MAPPING MACRO: VTVMLGON                 *
+*                                                                     *
+*      THE HI-ORDER BIT OF THE LAST PARAMETER WILL BE SET TO 1        *
+*                                                                     *
+*---------------------------------------------------------------------*
+*                                                                     *
+*   RETURN CODES:                                                     *
+*                                                                     *
+*      00 - CONTINUE LOGON PROCESS.                                   *
+*      04 - TERMINATE LOGON PROCESS.                                  *
+*                                                                     *
+*---------------------------------------------------------------------*
+         EJECT
+*---------------------------------------------------------------------*
+*                                                                     *
+* CHANGE ACTIVITY:                                                    *
+*                                                                     *
+* 29DEC2010 PGK CHANGES FOR CHARACTER SET CASE CONVERSION METHOD      * VM100076
+* 22MAY2018 PGK SUPPORT USE OF RACF PASSPHRASE                        * VM120003
+* 02SEP2022 DMC UPPERCASE PASSWORD ONLY.                              * TX150E00
+* 20SEP2022 CEP FIXED LRS CODE TO WORK WITH PASSWORD AND PASSPHRASE   * TX150ECP
+*                                                                     *
+*---------------------------------------------------------------------*
+         EJECT
+*---------------------------------------------------------------------* VMCF211
+*                                                                     * VMCF211
+*        LRS MACROS, GLOBAL VARIABLES AND EQUATES                     * VMCF211
+*                                                                     * VMCF211
+*---------------------------------------------------------------------* VMCF211
+         PUSH  PRINT                                                    VMCF211
+         PRINT OFF                                                      VMCF211
+         COPY  $LRXEQU                                                  VMCF211
+         $LRXOPS                                                        VMCF211
+         LRSSMTAB                                                       VMCF211
+         LRSSXIB                                                        VMCF211
+         VMCFATT
+         VTVMLOGN
+         POP   PRINT                                                    VMCF211
+         EJECT
+*---------------------------------------------------------------------*
+*                                                                     *
+*        V M V T U E 0 0   E N T R Y                                  *
+*                                                                     *
+*---------------------------------------------------------------------*
+VMVTUE00 $LRXENT TITLE='VMCF/VTAM USER EXIT-00:  USER LOGON EXIT',     *VMCF211
+               BASE=(R12),                                             *VMCF211
+               ENVIRON=VMCFVTAM,                                       *VMCF211
+               AMODE=31,                                               *VMCF211
+               RMODE=ANY,                                              *VMCF211
+               WAREG=(R13),                                            *VMCF211
+               WALOC=ANY                                                VMCF211
+         SPACE
+         EAR   R10,AR15                LOAD LR_XIB BASE REGISTER.       VMCF211
+         USING LR_XIB_DSECT,R10        ESTABLISH LR_XIB ADDRESSABILITY. VMCF211
+         SPACE
+         L     R4,0(,R1)               LOAD VMCFATT BASE REGISTER.
+         L     R3,4(,R1)               SAVE ADDR OF USER WORDS.
+         L     R5,8(,R1)               LOAD LOGON DSECT BASE REGISTER.
+         LA    R5,0(,R5)               RESET END-OF-LIST FLAG.
+         USING ATTDSECT,R4             ESTABLISH ATT ADDRESSABILITY.
+         USING VTLGDSCT,R5             ESTABLISH LGON ADDRESSABILITY.
+         SPACE
+         ST    R0,UE00_REQ             SAVE REQUEST CODE.               VMCF211
+         SPACE
+         CH    R0,=H'0'                REQUEST CODE ZERO?               VMCF211
+         JE    UXIT0000                YES, PROCEED WITH PRE-SIGNON.    TX150E00
+         SPACE
+         CH    R0,=H'4'                REQUEST CODE FOUR?               VMCF211
+         JE    UXIT0200                YES, PROCEED WITH POST-SIGNON.
+         SPACE
+         J     UXITRC00                NEITHER, EXIT NOW.
+         EJECT
+*---------------------------------------------------------------------*
+*                                                                     *
+*        PRE-SIGNON SCREEN PROCESSING                                 *
+*                                                                     *
+*---------------------------------------------------------------------*
+UXIT0000 DS    0H                      ********************************
+         J     UXITRC00                EXIT WITH RC=00.
+         EJECT
+*---------------------------------------------------------------------*
+*                                                                     *
+*        POST-SIGNON SCREEN PROCESSING                                *
+*                                                                     *
+*---------------------------------------------------------------------*
+UXIT0200 DS    0H                      ********************************
+         CLC   VTLGPSW,##BLANKS        PASSWORD/PHRASE ENTERED?         TX150E00
+         JE    UXIT0230                  NO, CHECK NEW PASSWORD/PHRASE. TX150ECP
+         SPACE                                                          TX150E00
+         LA    R14,VTLGPSW             GET A(LOGON PASSWORD/PHRASE).    TX150E00
+         L     R15,=AL4(L'VTLGPSW)     GET L'LOGON PASSWORD/PHRASE.     TX150E00
+         AR    R14,R15                 ADD LENGTH OF PASSWORD/PHRASE.   TX150E00
+         BCTR  R14,R0                  BACK UP TO LAST POSITION.        TX150E00
+         SPACE                                                          TX150E00
+UXIT0210 DS    0H                      ******************************** TX150E00
+         CLI   0(R14),C' '             NON-BLANK CHARACTER?             TX150E00
+         JH    UXIT0220                  YES, DETERMINE LENGTH.         TX150E00
+         BCTR  R14,R0                                                   TX150ECP
+         JCT   R15,UXIT0210            SUBTRACT ONE AND CHECK NEXT POS. TX150E00
+         J     UXIT0230                                                 TX150ECP
+         SPACE                                                          TX150E00
+UXIT0220 DS    0H                      ******************************** TX150E00
+         C     R15,##F8                IS IT A PASSWORD (LENGTH LE 8)?  TX150E00
+         JH    UXIT0230                NO, IT'S A PASSPHRASE            TX150ECP
+         OC    VTLGPSW,##BLANKS        UPPERCASE PASSWORD/PHRASE.       TX150E00
+         SPACE                                                          TX150E00
+UXIT0230 DS    0H                      ******************************** TX150E00
+         CLC   VTLGNPSW,##BLANKS       NEW PASSWORD/PHRASE ENTERED?     TX150E00
+         JE    UXITRC00                  NO, EXIT WITH RC=00.           TX150ECP
+         LA    R14,VTLGNPSW            GET A(NEW LOGON PASSWORD/PHRASE) TX150E00
+         L     R15,=AL4(L'VTLGNPSW)    GET L'NEW LOGON PASSWORD/PHRASE. TX150E00
+         AR    R14,R15                 ADD LNGTH OF NEW PASSWORD/PHRASE TX150E00
+         BCTR  R14,R0                  BACK UP TO LAST POSITION.        TX150E00
+         SPACE                                                          TX150E00
+UXIT0240 DS    0H                      ******************************** TX150E00
+         CLI   0(R14),C' '             NON-BLANK CHARACTER?             TX150E00
+         JH    UXIT0245                  YES, DETERMINE LENGTH.         TX150E00
+         BCTR  R14,R0                                                   TX150ECP
+         JCT   R15,UXIT0240            SUBTRACT ONE AND CHECK NEXT POS. TX150E00
+UXIT0245 DS    0H
+         C     R15,##F8                IS IT A PASSWORD (LENGTH LE 8)?  TX150E00
+         JH    UXITRC00                EXIT WITH RC=00.                 TX150E00
+         SPACE                                                          TX150E00
+UXIT0250 DS    0H                      ******************************** TX150E00
+         OC    VTLGNPSW,##BLANKS       UPPERCASE NEW PASSWORD/PHRASE.   TX150E00
+         J     UXITRC00                EXIT WITH RC=00.                 TX150E00
+*---------------------------------------------------------------------*
+*                                                                     *
+*        V M V T U E 0 0   E X I T                                    *
+*                                                                     *
+*---------------------------------------------------------------------*
+UXITRC00 DS    0H                      ********************************
+         LA    R15,RC00                GOOD RETURN CODE; CONTINUE LOGON
+         J     UXIT9999                RETURN TO VMCF/VTAM.
+UXITRC04 DS    0H                      ********************************
+         LA    R15,RC04                TERMINATE LOGON PROCESS.
+UXIT9999 DS    0H                      ********************************
+         $LRXRET RC=(R15)              RETURN TO CALLER.                VMCF211
+         DROP  R10                     KILL LR_XIB ADDRESSABILITY.      VMCF211
+         EJECT
+*---------------------------------------------------------------------*
+*                                                                     *
+*        R E G I S T E R   E Q U A T E S                              *
+*                                                                     *
+*---------------------------------------------------------------------*
+R0       EQU   0
+R1       EQU   1
+R2       EQU   2
+R4       EQU   3
+R3       EQU   4
+R5       EQU   5
+R6       EQU   6
+R7       EQU   7
+R8       EQU   8
+R9       EQU   9
+R10      EQU   10
+R11      EQU   11
+R12      EQU   12
+R13      EQU   13
+R14      EQU   14
+R15      EQU   15
+         SPACE
+AR0      EQU   0                                                        VMCF211
+AR1      EQU   1                                                        VMCF211
+AR2      EQU   2                                                        VMCF211
+AR3      EQU   3                                                        VMCF211
+AR4      EQU   4                                                        VMCF211
+AR5      EQU   5                                                        VMCF211
+AR6      EQU   6                                                        VMCF211
+AR7      EQU   7                                                        VMCF211
+AR8      EQU   8                                                        VMCF211
+AR9      EQU   9                                                        VMCF211
+AR10     EQU   10                                                       VMCF211
+AR11     EQU   11                                                       VMCF211
+AR12     EQU   12                                                       VMCF211
+AR13     EQU   13                                                       VMCF211
+AR14     EQU   14                                                       VMCF211
+AR15     EQU   15                                                       VMCF211
+         TITLE 'CONSTANTS'
+*---------------------------------------------------------------------*
+*                                                                     *
+*        C O N S T A N T S                                            *
+*                                                                     *
+*---------------------------------------------------------------------*
+$$LITCON$$         DS    0D            START OF LITERALS AND CONSTANTS. VMCF211
+                   SPACE
+##BLANKS           DC    CL100' '                                       VM120003
+##F8               DC    F'8'                                           TX150E00
+                   SPACE                                                VM100076
+RC00               EQU   00
+RC04               EQU   04
+                   SPACE
+                   TITLE 'LITERALS'
+*---------------------------------------------------------------------*
+*                                                                     *
+*        L I T E R A L S                                              *
+*                                                                     *
+*---------------------------------------------------------------------*
+                   LTORG
+                   TITLE 'WORKING STORAGE DSECT'
+*---------------------------------------------------------------------*
+*                                                                     *
+*        V M V T U E 0 0   W O R K A R E A   D S E C T                *
+*                                                                     *
+*---------------------------------------------------------------------*
+UE00_DSECT         DSECT
+                   DC    18A(0)        VMVTUE00 REGISTER SAVEAREA.      VM100039
+UE00_REQ           DC    A(0)          REQUEST CODE.
+                   SPACE
+                   DC    ($LRX_WSS_WSMAX-(*-UE00_DSECT))XL1'00' RSVD.   VMCF211
+                   DS    0D            ALIGN ON DOUBLEWORD BOUNDARY.
+UE00DSLN           EQU   *-UE00_DSECT  LENGTH OF WORKAREA.
+                   END   VMVTUE00

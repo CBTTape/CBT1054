@@ -1,0 +1,7 @@
+RACF commands to add auditing to capture access
+RDEFINE APPL TSO* AUDIT(ALL(READ)) UACC(READ)  << captures our TSO applications
+RDEFINE APPL CI* AUDIT(ALL(READ)) UACC(READ)   << captures our CICS applications
+RDEFINE APPL xx* AUDIT(ALL(READ)) UACC(READ)   << Modify as needed for your appl
+SETROPTS APPLAUDIT
+SETROPTS RACLIST(APPL) REFRESH
+

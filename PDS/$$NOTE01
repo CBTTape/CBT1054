@@ -1,0 +1,29 @@
+    CBT tape - Passphrase Detection
+Subject:  CBT tape
+From:     "Paul Lemons (Vericast)" <Paul.Lemons@Vericast.com>
+Date:     4/16/2024, 5:34 PM
+To:       Sam Golob <sbgolob@cbttape.org>
+
+I'm attaching a file that may be useful.  We are converting
+users to use a pass phrase instead of a password.  We were
+looking for a way to capture what user ids are using phrases,
+which ones that are using passwords.  This information is in SMF
+records but there was not a report set up as there are for other
+RACF reports.  This contains a sample report that can be
+submitted.  The other issue is that the default for SMF is to
+not capture some of the data needed.  That meant that we had to
+make some adjustments to the RACF class APPL to generate the SMF
+records we needed.  Maybe this will help someone else as
+security at our shop is being really being cranked up as it
+likely is at other shops.
+
+Have a great day.
+
+Paul Lemons
+Systems Engineer IV - Mainframe Infrastucture
+Vericast
+15955 La Cantera Parkway
+San Antonio, TX 78256
+Mobile: 214 686-3749
+Paul.Lemons@Vericast.com
+

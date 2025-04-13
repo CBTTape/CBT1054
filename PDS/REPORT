@@ -1,0 +1,145 @@
+//REPORT   JOB (CLK#,APP6,0030,0010),'SMFRPT',CLASS=P,MSGCLASS=P,
+//             REGION=0M,NOTIFY=&SYSUID
+//*------------------------------------------------------------
+//*
+//* This will create 2 datasets with usage reports
+//*   One is a list of users using a password
+//*   the other is a list of users using a pass phrase
+//*-***********************************************************
+//*
+//*--------------------------------------------------
+//* Delete report files if they exist
+//*--------------------------------------------------
+//*
+//IDCAMS   EXEC PGM=IDCAMS,REGION=4000K
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD *
+  DELETE CLK2.L3.PHRASE.HISTORY.REPORT
+  DELETE CLK2.L3.PWD.HISTORY.REPORT
+  SET MAXCC=0
+/*
+//*------------------------------------------------------------
+//* Dump the SMF type 80 records to the OUTDD DD
+//*   SMFOUT DD is set to dummy
+//*------------------------------------------------------------
+//SMFDMP80 EXEC PGM=IFASMFDP
+//SYSPRINT DD  SYSOUT=*
+//ADUPRINT DD  SYSOUT=*
+//OUTDD    DD DSN=&&TEMP,UNIT=SYSDA,
+//           DISP=(,PASS,DELETE),
+//           SPACE=(CYL,(100,50),RLSE),
+//           RECFM=VBS,BLKSIZE=0,LRECL=12288
+//SMFDATA DD DISP=SHR,DSN=P.SM.SMF.DUMP.CKD1(0) <<chg
+//SMFOUT   DD  DUMMY
+//DUMPOUT  DD  DUMMY
+//SYSIN    DD  *
+  INDD(SMFDATA,OPTIONS(DUMP))
+  OUTDD(SMFOUT,TYPE(80))
+  ABEND(NORETRY)
+  USER2(IRRADU00)
+  USER3(IRRADU86)
+/*
+//*
+//*------------------------------------------------------------
+//REPORTS   EXEC PGM=ICETOOL,REGION=0M
+//TOOLMSG   DD SYSOUT=*
+//PRINT     DD SYSOUT=*
+//JOBINIT   DD SYSOUT=*
+//RACFINIT  DD SYSOUT=*
+//PHRASE    DD DSN=CLK2.L3.PHRASE.HISTORY.REPORT,   <<CHG
+//          DISP=(,CATLG),UNIT=SYSDA,
+//          SPACE=(CYL,(10,5),RLSE),
+//          BLKSIZE=0,RECFM=FBA,LRECL=129
+//PASSWORD  DD DSN=CLK2.L3.PWD.HISTORY.REPORT,      <<CHG
+//          DISP=(,CATLG),UNIT=SYSDA,
+//          SPACE=(CYL,(100,10),RLSE),
+//          BLKSIZE=0,RECFM=FBA,LRECL=129
+//DFSMSG    DD DUMMY
+//INDD      DD DISP=(SHR,PASS),DSN=&&TEMP
+//TEMP0001  DD DISP=(NEW,DELETE,DELETE),SPACE=(CYL,(1500,500,0)),
+//            UNIT=SYSDA,VOL=(,,,9)
+//TOOLIN    DD *
+**********************************************************************
+ COPY    FROM(INDD) TO(TEMP0001) USING(IR22)
+ OCCURS  FROM(TEMP0001) LIST(JOBINIT) -
+         TITLE('Jobinit') -
+         ON(14,8,CH)   HEADER('Event') -
+         ON(63,8,CH)   HEADER('Userid') -
+         ON(560,20,CH) HEADER('User Name') -
+         ON(32,10,CH)  HEADER('Date') -
+         ON(23,8,CH)   HEADER('Time') -
+         ON(184,8,CH)  HEADER('JOB') -
+         ON(286,8,CH)  HEADER('APPL') -
+         ON(4589,4,CH) HEADER('PWD success') -
+         ON(4599,4,CH) HEADER('Phrase success')
+**********************************************************************
+ COPY    FROM(INDD) TO(TEMP0001) USING(IR23)
+ OCCURS  FROM(TEMP0001) LIST(RACFINIT) -
+         TITLE('RACFINTI') -
+         ON(14,8,CH)   HEADER('Event') -
+         ON(63,8,CH)   HEADER('Userid') -
+         ON(560,20,CH) HEADER('User Name') -
+         ON(32,10,CH)  HEADER('Date') -
+         ON(23,8,CH)   HEADER('Time') -
+         ON(184,8,CH)  HEADER('JOB') -
+         ON(286,8,CH)  HEADER('APPL') -
+         ON(4589,4,CH) HEADER('PWD Success') -
+         ON(4599,4,CH) HEADER('Phrase Success')
+**********************************************************************
+**********************************************************************
+ COPY    FROM(INDD) TO(TEMP0001) USING(IR24)
+ OCCURS  FROM(TEMP0001) LIST(PASSWORD) -
+         TITLE('Password') -
+         ON(63,8,CH)   HEADER('Userid') -
+         ON(560,20,CH) HEADER('User Name') -
+         ON(32,10,CH)  HEADER('Date') -
+         ON(23,8,CH)   HEADER('Time') -
+         ON(184,8,CH)  HEADER('JOB') -
+         ON(286,8,CH)  HEADER('APPL') -
+         ON(4584,4,CH) HEADER('PWD checked') -
+         ON(4589,4,CH) HEADER('Success') -
+         ON(4594,4,CH) HEADER('Phrase checked') -
+         ON(4599,4,CH) HEADER('Success')
+**********************************************************************
+**********************************************************************
+ COPY    FROM(INDD) TO(TEMP0001) USING(IR25)
+ OCCURS  FROM(TEMP0001) LIST(PHRASE) -
+         TITLE('Phrase') -
+         ON(63,8,CH)   HEADER('Userid') -
+         ON(560,20,CH) HEADER('User Name') -
+         ON(32,10,CH)  HEADER('Date') -
+         ON(23,8,CH)   HEADER('Time') -
+         ON(184,8,CH)  HEADER('JOB') -
+         ON(286,8,CH)  HEADER('APPL') -
+         ON(4584,4,CH) HEADER('PWD checked') -
+         ON(4589,4,CH) HEADER('Success') -
+         ON(4594,4,CH) HEADER('Phrase checked') -
+         ON(4599,4,CH) HEADER('Success')
+**********************************************************************
+/*
+/*
+//* ----------------------------------------------------------------
+//IR22CNTL  DD *
+ INCLUDE COND=(5,8,CH,EQ,C'JOBINIT ')
+ OPTION   VLSHRT
+/*
+//* ----------------------------------------------------------------
+//IR23CNTL  DD *
+ INCLUDE COND=(5,8,CH,EQ,C'JOBINIT ',AND,14,8,CH,EQ,C'RACINITI ')
+ OPTION   VLSHRT
+/*
+//* ----------------------------------------------------------------
+//IR24CNTL  DD *
+ INCLUDE COND=(5,8,CH,EQ,C'JOBINIT ',AND,
+     14,8,CH,EQ,C'RACINITI ',AND,
+     4584,4,CH,EQ,C'YES ')
+ OPTION   VLSHRT
+/*
+//* ----------------------------------------------------------------
+//IR25CNTL  DD *
+ INCLUDE COND=(5,8,CH,EQ,C'JOBINIT ',AND,
+     14,8,CH,EQ,C'RACINITI ',AND,
+     4594,4,CH,EQ,C'YES ')
+ OPTION   VLSHRT
+/*
+//* ---------------------------------------------------------------
